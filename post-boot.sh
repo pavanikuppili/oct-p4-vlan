@@ -45,7 +45,11 @@ check_xrt() {
 install_xbflash() {
     cp -r /proj/oct-fpga-p4-PG0/tools/xbflash/${OSVERSION} /tmp
     echo "Installing xbflash."
-    apt install /tmp/${OSVERSION}/*.deb
+    if [[ "$OSVERSION" == "ubuntu-18.04" ]] || [[ "$OSVERSION" == "ubuntu-20.04" ]]; then
+        apt install /tmp/${OSVERSION}/*.deb
+    elif [[ "$OSVERSION" == "centos-7" ]] || [[ "$OSVERSION" == "centos-8" ]]; then
+        yum install /tmp/${OSVERSION}/*.rpm
+    fi    
 }
 
 verify_install() {
