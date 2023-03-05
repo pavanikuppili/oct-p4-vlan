@@ -42,6 +42,12 @@ check_xrt() {
     fi
 }
 
+install_xbflash() {
+    cp -r /proj/oct-fpga-p4-PG0/tools/xbflash/${OSVERSION} /tmp
+    echo "Installing xbflash."
+    apt install /tmp/${OSVERSION}/*.deb
+}
+
 verify_install() {
     errors=0
     check_xrt
@@ -66,6 +72,7 @@ XRT_PACKAGE=`grep ^$COMB: $SCRIPT_PATH/spec.txt | awk -F':' '{print $2}' | awk -
 XRT_VERSION=`grep ^$COMB: $SCRIPT_PATH/spec.txt | awk -F':' '{print $2}' | awk -F';' '{print $7}' | awk -F= '{print $2}'`
 
 install_xrt
+install_xbflash
 verify_install
 if [ $? == 0 ] ; then
     echo "XRT and shell package installation successful."
