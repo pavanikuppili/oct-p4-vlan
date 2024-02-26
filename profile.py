@@ -1,4 +1,4 @@
-"""P4 node setup script.
+"""OCT Alveo U280 profile with post-boot script for P4 experiments
 """
 
 # Import the Portal object.
@@ -22,10 +22,6 @@ pc = portal.Context()
 # Create a Request object to start building the RSpec.
 request = pc.makeRequestRSpec()
 
-# Variable number of nodes.
-pc.defineParameter("nodeCount", "Number of Nodes", portal.ParameterType.INTEGER, 1,
-                   longDescription="Enter the number of FPGA nodes. Maximum is 4.")
-
 # Pick your image.
 imageList = [
     #('urn:publicid:IDN+emulab.net+image+emulab-ops//UBUNTU20-64-STD', 'UBUNTU 20.04'),    
@@ -41,7 +37,11 @@ toolVersion = [#('2022.1'),
                ('2020.1.1'),
                ('2020.1'),
                ('Do not install tools')]      
-                   
+
+pc.defineParameter("nodes","List of nodes",
+                   portal.ParameterType.STRING,"",
+                   longDescription="Comma-separated list of nodes (e.g., pc164,pc165). Please check the list of available nodes within the Mass cluster at https://www.cloudlab.us/cluster-status.php before you specify the nodes.")
+
 pc.defineParameter("toolVersion", "Tool Version",
                    portal.ParameterType.STRING,
                    toolVersion[0], toolVersion,
@@ -75,41 +75,60 @@ pc.defineParameter("tempFileSystemMount", "Temporary Filesystem Mount Point",
 params = pc.bindParameters()        
 
 # Check parameter validity.
-
-if params.nodeCount < 1 or params.nodeCount > 4:
-    pc.reportError(portal.ParameterError("The number of FPGA nodes should be greater than 1 and less than 4.", ["nodeCount"]))
-    pass
-if params.osImage == "urn:publicid:IDN+emulab.net+image+emulab-ops//CENTOS8-64-STD" and params.toolVersion == "2020.1":
-    pc.reportError(portal.ParameterError("OS and tool version mismatch.", ["osImage"]))
-    pass
   
 pc.verifyParameters()
 
-# lan = request.LAN()
+lan = request.LAN()
 
-# Process nodes, adding to FPGA network
-for i in range(params.nodeCount):
-    # Create a node and add it to the request
-    name = "node" + str(i)
-    node = request.RawPC(name)
-    node.disk_image = params.osImage
+nodeList = params.nodes.split(',')
+i = 0
+for nodeName in nodeList:
+    host = request.RawPC(nodeName)
+    # UMass cluster
+    host.component_manager_id = "urn:publicid:IDN+cloudlab.umass.edu+authority+cm"
     # Assign to the node hosting the FPGA.
-    node.hardware_type = "fpga-alveo"
-    node.component_manager_id = "urn:publicid:IDN+cloudlab.umass.edu+authority+cm"
+    host.component_id = nodeName
+    host.disk_image = params.osImage
     
     # Optional Blockstore
     if params.tempFileSystemSize > 0 or params.tempFileSystemMax:
-        bs = node.Blockstore(name + "-bs", params.tempFileSystemMount)
+        bs = host.Blockstore(nodeName + "-bs", params.tempFileSystemMount)
         if params.tempFileSystemMax:
             bs.size = "0GB"
         else:
             bs.size = str(params.tempFileSystemSize) + "GB"
-            pass
         bs.placement = "any"
-        pass
-    
+
     if params.toolVersion != "Do not install tools":
-        node.addService(pg.Execute(shell="bash", command="sudo /local/repository/post-boot.sh " + params.toolVersion + " >> /local/repository/output_log.txt"))
-        pass 
-    pass
+        host.addService(pg.Execute(shell="bash", command="sudo /local/repository/post-boot.sh " + params.toolVersion + " >> /local/repository/output_log.txt"))
+
+    # Since we want to create network links to the FPGA, it has its own identity.
+    fpga = request.RawPC("fpga-" + nodeName)
+    # UMass cluster
+    fpga.component_manager_id = "urn:publicid:IDN+cloudlab.umass.edu+authority+cm"
+    # Assign to the fgpa node
+    fpga.component_id = "fpga-" + nodeName
+    # Use the default image for the type of the node selected. 
+    fpga.setUseTypeDefaultImage()
+
+    # Secret sauce.
+    fpga.SubNodeOf(host)
+
+    host_iface1 = host.addInterface()
+    host_iface1.component_id = "eth2"
+    host_iface1.addAddress(pg.IPv4Address("192.168.40." + str(i+30), "255.255.255.0")) 
+    fpga_iface1 = fpga.addInterface()
+    fpga_iface1.component_id = "eth0"
+    fpga_iface1.addAddress(pg.IPv4Address("192.168.40." + str(i+10), "255.255.255.0"))
+    fpga_iface2 = fpga.addInterface()
+    fpga_iface2.component_id = "eth1"
+    fpga_iface2.addAddress(pg.IPv4Address("192.168.40." + str(i+20), "255.255.255.0"))
+    
+    lan.addInterface(fpga_iface1)
+    lan.addInterface(fpga_iface2)
+    lan.addInterface(host_iface1)
+  
+    i+=1
+
+# Print Request RSpec
 pc.printRequestRSpec(request)
