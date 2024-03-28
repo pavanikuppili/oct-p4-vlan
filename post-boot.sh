@@ -65,6 +65,7 @@ verify_install() {
 }
 
 disable_pcie_fatal_error() {
+    echo "Disabling pcie fatal error reporting."
     sudo /proj/oct-fpga-p4-PG0/tools/pcie_disable_fatal.sh 3b:00.0
 }
 SHELL=1
