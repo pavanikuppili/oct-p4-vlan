@@ -63,6 +63,10 @@ verify_install() {
     fi
     return $errors
 }
+
+disable_pcie_fatal_error() {
+    ssudo /proj/oct-fpga-p4-PG0/tools/pcie_disable_fatal.sh 3b:00.0
+}
 SHELL=1
 OSVERSION=`grep '^ID=' /etc/os-release | awk -F= '{print $2}'`
 OSVERSION=`echo $OSVERSION | tr -d '"'`
@@ -78,6 +82,7 @@ XRT_VERSION=`grep ^$COMB: $SCRIPT_PATH/spec.txt | awk -F':' '{print $2}' | awk -
 install_xrt
 install_xbflash
 verify_install
+disable_pcie_fatal_error
 if [ $? == 0 ] ; then
     echo "XRT and shell package installation successful."
 else
