@@ -63,6 +63,9 @@ verify_install() {
     fi
     return $errors
 }
+install_config_fpga() {
+    cp /proj/oct-fpga-p4-PG0/tools/config-fpga /usr/local/bin
+}
 
 disable_pcie_fatal_error() {
     echo "Disabling pcie fatal error reporting."
@@ -83,6 +86,7 @@ XRT_VERSION=`grep ^$COMB: $SCRIPT_PATH/spec.txt | awk -F':' '{print $2}' | awk -
 install_xrt
 install_xbflash
 verify_install
+install_config_fpga
 disable_pcie_fatal_error
 if [ $? == 0 ] ; then
     echo "XRT and shell package installation successful."
