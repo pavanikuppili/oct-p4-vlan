@@ -5,8 +5,8 @@
 #!/usr/bin/env bash
 
 install_xrt() {
-    echo "Download XRT installation package"
-    wget -cO - "https://www.xilinx.com/bin/public/openDownload?filename=$XRT_PACKAGE" > /tmp/$XRT_PACKAGE
+    #echo "Download XRT installation package"
+    #wget -cO - "https://www.xilinx.com/bin/public/openDownload?filename=$XRT_PACKAGE" > /tmp/$XRT_PACKAGE
     
     echo "Install XRT"
     if [[ "$OSVERSION" == "ubuntu-16.04" ]] || [[ "$OSVERSION" == "ubuntu-18.04" ]] || [[ "$OSVERSION" == "ubuntu-20.04" ]]; then
@@ -14,7 +14,7 @@ install_xrt() {
         echo "Installing XRT dependencies..."
         apt update
         echo "Installing XRT package..."
-        apt install -y /tmp/$XRT_PACKAGE
+        apt install -y /proj/oct-fpga-p4-PG0/tools/deployment/xrt/$TOOLVERSION/$OSVERSION/$XRT_PACKAGE
     elif [[ "$OSVERSION" == "centos-7" ]] ; then
         echo "CentOS 7 XRT install"
         echo "Installing XRT dependencies..."
