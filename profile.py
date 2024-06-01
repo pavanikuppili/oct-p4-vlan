@@ -31,7 +31,7 @@ imageList = [
     #('urn:publicid:IDN+emulab.net+image+emulab-ops//CENTOS7-64-STD', 'CENTOS 7.9')
 ] 
 
-toolVersion = [('2023.1')
+toolVersion = [('2023.1'),
                ('Do not install tools')]      
 
 pc.defineParameter("nodes","List of nodes",
