@@ -15,6 +15,13 @@ import geni.rspec.pg as pg
 import geni.urn as urn
 # Emulab extension
 import geni.rspec.emulab
+#from ipaddress import IPv4Network, IPv6Network
+
+
+# NODE_MIN=1
+# NODE_MAX=4
+# VLAN_MIN=3110
+# VLAN_MAX=3119
 
 # Create a portal context.
 pc = portal.Context()
@@ -66,15 +73,28 @@ pc.defineParameter("tempFileSystemMount", "Temporary Filesystem Mount Point",
                    longDescription="Mount the temporary file system at this mount point; in general you " +
                    "you do not need to change this, but we provide the option just in case your software " +
                    "is finicky.")  
-                   
+
+
+#pc.defineParameter("vlan", "VLAN ID", portal.ParameterType.INTEGER, 3111)
 # Retrieve the values the user specifies during instantiation.
-params = pc.bindParameters()        
+
+params = pc.bindParameters()     
+
+# parameterize the vlan to use
+
+#portal.context.defineParameter("ip_subnet", "IP_SUBNET", portal.ParameterType.STRING, "192.168.1.0/24")
+#portal.context.defineParameter("node_count", "NODE_COUNT", portal.ParameterType.INTEGER, NODE_MIN)
+#params = portal.context.bindParameters()
 
 # Check parameter validity.
   
 pc.verifyParameters()
 
-lan = request.LAN()
+lan1 = request.Link("link", "vlan")
+#lan2 = request.Link("link", "vlan")
+
+lan1.setVlanTag(2711)
+#lan2.setVlanTag(2502)
 
 nodeList = params.nodes.split(',')
 i = 0
@@ -120,9 +140,18 @@ for nodeName in nodeList:
     fpga_iface2.component_id = "eth1"
     fpga_iface2.addAddress(pg.IPv4Address("192.168.40." + str(i+20), "255.255.255.0"))
     
-    lan.addInterface(fpga_iface1)
-    lan.addInterface(fpga_iface2)
-    lan.addInterface(host_iface1)
+    
+    # lan2.setVlanTag(3112)
+
+    lan1.addInterface(fpga_iface1)
+    lan1.addInterface(fpga_iface2)
+    lan1.addInterface(host_iface1)
+
+    lan1.link_multiplexing = True;
+    lan1.best_effort = True;
+
+   # lan2.link_multiplexing = True;
+   # lan2.best_effort = True;
   
     i+=1
 
