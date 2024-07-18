@@ -90,11 +90,11 @@ params = pc.bindParameters()
   
 pc.verifyParameters()
 
-lan1 = request.Link("link", "vlan")
-#lan2 = request.Link("link", "vlan")
+lan1 = request.Link("link1", "vlan1")
+lan2 = request.Link("link2", "vlan2")
 
 lan1.setVlanTag(2711)
-#lan2.setVlanTag(2502)
+lan2.setVlanTag(2712)
 
 nodeList = params.nodes.split(',')
 i = 0
@@ -143,8 +143,8 @@ for nodeName in nodeList:
     
     # lan2.setVlanTag(3112)
 
-    lan1.addInterface(fpga_iface1)
-    lan1.addInterface(fpga_iface2)
+    lan2.addInterface(fpga_iface1)
+    lan2.addInterface(fpga_iface2)
     lan1.addInterface(host_iface1)
 
     lan1.link_multiplexing = True;
