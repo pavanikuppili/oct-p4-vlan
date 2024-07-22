@@ -90,7 +90,7 @@ params = pc.bindParameters()
   
 pc.verifyParameters()
 
-lan1 = request.Link("", "")
+lan1 = request.Link("", "vlan")
 lan2 = request.Link("link", "vlan")
 
 lan1.setVlanTag(2711)
