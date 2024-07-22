@@ -157,8 +157,8 @@ for nodeName in nodeList:
     lan1.link_multiplexing = True;
     lan1.best_effort = True;
 
-   lan2.link_multiplexing = True;
-   lan2.best_effort = True;
+    lan2.link_multiplexing = True;
+    lan2.best_effort = True;
   
     i+=1
 
